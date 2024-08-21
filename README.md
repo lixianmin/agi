@@ -1,2 +1,2 @@
 # agi
-artificial general/goalng intelligence
+artificial general/golang intelligence
