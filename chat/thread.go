@@ -1,9 +1,7 @@
-package ai
+package chat
 
 import (
 	"sync"
-
-	"github.com/ollama/ollama/api"
 )
 
 /********************************************************************
@@ -15,14 +13,14 @@ Copyright (C) - All Rights Reserved
 
 type (
 	Thread struct {
-		systemPromptMessage *api.Message
+		systemPromptMessage *Message
 		userRole            string
 		botRole             string
 		temperature         float32
 		topP                float32
 		topK                int32
 
-		messages []api.Message
+		messages []Message
 		m        sync.Mutex
 	}
 )
@@ -51,11 +49,11 @@ func NewThread(opts ...ThreadOption) *Thread {
 		temperature: options.temperature,
 		topP:        options.topP,
 		topK:        options.topK,
-		messages:    make([]api.Message, 0, options.historySize),
+		messages:    make([]Message, 0, options.historySize),
 	}
 
 	if options.systemPrompt != "" {
-		thread.systemPromptMessage = &api.Message{
+		thread.systemPromptMessage = &Message{
 			Role:    "system",
 			Content: options.systemPrompt,
 		}
@@ -65,11 +63,11 @@ func NewThread(opts ...ThreadOption) *Thread {
 }
 
 func (my *Thread) AddAnswer(answer string) {
-	var message = api.Message{Role: my.botRole, Content: answer}
+	var message = Message{Role: my.botRole, Content: answer}
 	my.addMessage(message)
 }
 
-func (my *Thread) addMessage(message api.Message) {
+func (my *Thread) addMessage(message Message) {
 	var count = len(my.messages)
 	if count == cap(my.messages) {
 		for i := 0; i < count-1; i++ {
@@ -82,9 +80,9 @@ func (my *Thread) addMessage(message api.Message) {
 	}
 }
 
-func (my *Thread) GetMessages() []api.Message {
+func (my *Thread) GetMessages() []Message {
 	if my.systemPromptMessage != nil {
-		return append([]api.Message{*my.systemPromptMessage}, my.messages...)
+		return append([]Message{*my.systemPromptMessage}, my.messages...)
 	}
 
 	return my.messages

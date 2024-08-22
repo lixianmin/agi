@@ -14,9 +14,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lixianmin/agi/chat"
 	"github.com/lixianmin/got/convert"
-	"github.com/ollama/ollama/api"
-	"github.com/ollama/ollama/format"
 )
 
 /********************************************************************
@@ -33,12 +32,21 @@ type SiliconClient struct {
 }
 
 type ChatRequest struct {
-	Model       string        `json:"model"`
-	Messages    []api.Message `json:"messages"`
-	Stream      bool          `json:"stream,omitempty"`
-	Temperature float32       `json:"temperature,omitempty"`
-	TopK        int32         `json:"top_k,omitempty"`
-	TopP        float32       `json:"top_p,omitempty"`
+	Model       string         `json:"model"`
+	Messages    []chat.Message `json:"messages"`
+	Stream      bool           `json:"stream,omitempty"`
+	Temperature float32        `json:"temperature,omitempty"`
+	TopK        int32          `json:"top_k,omitempty"`
+	TopP        float32        `json:"top_p,omitempty"`
+}
+
+type ChatResponse struct {
+	Model      string       `json:"model"`
+	CreatedAt  time.Time    `json:"created_at"`
+	Message    chat.Message `json:"message"`
+	DoneReason string       `json:"done_reason,omitempty"`
+
+	Done bool `json:"done"`
 }
 
 type ChatCompletionChunk struct {
@@ -51,20 +59,23 @@ type ChatCompletionChunk struct {
 }
 
 type ChunkedChoice struct {
-	Index        int         `json:"index"`
-	Delta        api.Message `json:"delta"`
-	FinishReason string      `json:"finish_reason"`
+	Index        int          `json:"index"`
+	Delta        chat.Message `json:"delta"`
+	FinishReason string       `json:"finish_reason"`
 }
 
-const maxBufferSize = 512 * format.KiloByte
+type ChatResponseFunc func(ChatResponse) error
 
-func NewSiliconClient(client *http.Client, secretKey string) *SiliconClient {
+const maxBufferSize = 512 * 1024
+
+func NewSiliconClient(secretKey string) *SiliconClient {
 	const base = "https://api.siliconflow.cn"
 	var baseUrl, err = url.Parse(base)
 	if err != nil {
 		panic(err)
 	}
 
+	var client = http.DefaultClient
 	return &SiliconClient{
 		baseUrl:       baseUrl,
 		client:        client,
@@ -72,17 +83,17 @@ func NewSiliconClient(client *http.Client, secretKey string) *SiliconClient {
 	}
 }
 
-func (my *SiliconClient) StreamChat(ctx context.Context, req *ChatRequest, fn api.ChatResponseFunc) error {
+func (my *SiliconClient) StreamChat(ctx context.Context, request *ChatRequest, fn ChatResponseFunc) error {
 	if fn == nil {
 		return errors.New("fn is nil")
 	}
 
-	var data = req
+	var data = request
 	const path = "/v1/chat/completions"
 
 	var buf *bytes.Buffer
 	if data != nil {
-		bts, err := json.Marshal(data)
+		bts, err := convert.ToJsonE(data)
 		if err != nil {
 			return err
 		}
@@ -91,15 +102,15 @@ func (my *SiliconClient) StreamChat(ctx context.Context, req *ChatRequest, fn ap
 	}
 
 	var requestURL = my.baseUrl.JoinPath(path)
-	var request, err1 = http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), buf)
+	var request1, err1 = http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), buf)
 	if err1 != nil {
 		return err1
 	}
 
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("authorization", my.authorization)
+	request1.Header.Set("Content-Type", "application/json")
+	request1.Header.Set("authorization", my.authorization)
 
-	var response, err2 = my.client.Do(request)
+	var response, err2 = my.client.Do(request1)
 	if err2 != nil {
 		return err2
 	}
@@ -119,7 +130,7 @@ func (my *SiliconClient) StreamChat(ctx context.Context, req *ChatRequest, fn ap
 		}
 
 		if line == "data: [DONE]" {
-			var chatResponse = api.ChatResponse{
+			var chatResponse = ChatResponse{
 				Done: true,
 			}
 
@@ -139,10 +150,10 @@ func (my *SiliconClient) StreamChat(ctx context.Context, req *ChatRequest, fn ap
 
 		if len(chunk.Choices) > 0 {
 			var choice = chunk.Choices[0]
-			var chatResponse = api.ChatResponse{
+			var chatResponse = ChatResponse{
 				Model:     chunk.Model,
 				CreatedAt: time.Unix(chunk.Created, 0),
-				Message: api.Message{
+				Message: chat.Message{
 					Role:    choice.Delta.Role,
 					Content: choice.Delta.Content,
 				},
