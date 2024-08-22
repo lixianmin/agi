@@ -28,21 +28,22 @@ func WithPrompt(prompt string) ThreadOption {
 	}
 }
 
-func WithUserRole(userRole string) ThreadOption {
-	return func(options *threadOptions) {
-		if options.userRole != "" {
-			options.userRole = userRole
-		}
-	}
-}
+// 这个设置好像没有意义, 因此第一次请求的时候server也不会知道bot的role是什么, 然后就返回了assistant. 使用siliconflow的测试是这样的结果
+// func WithUserRole(userRole string) ThreadOption {
+// 	return func(options *threadOptions) {
+// 		if options.userRole != "" {
+// 			options.userRole = userRole
+// 		}
+// 	}
+// }
 
-func WithBotRole(botRole string) ThreadOption {
-	return func(options *threadOptions) {
-		if options.botRole != "" {
-			options.botRole = botRole
-		}
-	}
-}
+// func WithBotRole(botRole string) ThreadOption {
+// 	return func(options *threadOptions) {
+// 		if options.botRole != "" {
+// 			options.botRole = botRole
+// 		}
+// 	}
+// }
 
 func WithHistorySize(size int) ThreadOption {
 	return func(options *threadOptions) {
