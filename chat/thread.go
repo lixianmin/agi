@@ -1,5 +1,7 @@
 package chat
 
+import "sync"
+
 /********************************************************************
 created:    2024-06-01
 author:     lixianmin
@@ -16,6 +18,8 @@ type (
 		topK        int32
 
 		messages []Message
+		cloned   []Message
+		m        sync.Mutex
 	}
 )
 
@@ -44,6 +48,7 @@ func NewThread(opts ...ThreadOption) *Thread {
 		topP:        options.topP,
 		topK:        options.topK,
 		messages:    make([]Message, 1, options.historySize+1), // index=0 is system prompt
+		cloned:      make([]Message, 1, options.historySize+1),
 	}
 
 	thread.messages[0] = Message{
@@ -56,7 +61,9 @@ func NewThread(opts ...ThreadOption) *Thread {
 
 func (my *Thread) SetPrompt(prompt string) {
 	if prompt != "" {
+		my.m.Lock()
 		my.messages[0].Content = prompt
+		my.m.Unlock()
 	}
 }
 
@@ -75,17 +82,32 @@ func (my *Thread) AddBotMessage(content string) {
 }
 
 func (my *Thread) addMessage(message Message) {
-	var count = len(my.messages)
-	if count == cap(my.messages) {
-		copy(my.messages[1:], my.messages[2:])
-		my.messages[count-1] = message
-	} else {
-		my.messages = append(my.messages, message)
+	my.m.Lock()
+	{
+		var count = len(my.messages)
+		if count == cap(my.messages) {
+			copy(my.messages[1:], my.messages[2:])
+			my.messages[count-1] = message
+		} else {
+			my.messages = append(my.messages, message)
+		}
 	}
+	my.m.Unlock()
 }
 
 func (my *Thread) GetMessages() []Message {
-	return my.messages
+	my.m.Lock()
+	{
+		var deltaSize = len(my.messages) - len(my.cloned)
+		for i := 0; i < deltaSize; i++ {
+			my.cloned = append(my.cloned, Message{})
+		}
+
+		copy(my.cloned, my.messages)
+	}
+	my.m.Unlock()
+
+	return my.cloned
 }
 
 func (my *Thread) GetTemperature() float32 {
