@@ -8,21 +8,23 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type threadOptions struct {
-	systemPrompt string
-	userRole     string
-	botRole      string
-	temperature  float32
-	topK         int32
-	topP         float32
+	prompt      string
+	userRole    string
+	botRole     string
+	temperature float32
+	topK        int32
+	topP        float32
 
 	historySize int
 }
 
 type ThreadOption func(*threadOptions)
 
-func WithSystemPrompt(systemPrompt string) ThreadOption {
+func WithPrompt(prompt string) ThreadOption {
 	return func(options *threadOptions) {
-		options.systemPrompt = systemPrompt
+		if options.prompt != "" {
+			options.prompt = prompt
+		}
 	}
 }
 
