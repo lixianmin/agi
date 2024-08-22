@@ -66,8 +66,9 @@ type (
 	ChatResponseFunc func(ChatResponse) error
 )
 
+// NewSiliconClient 线程安全+无状态
 func NewSiliconClient(secretKey string) *SiliconClient {
-	var client = http.DefaultClient
+	var client = &http.Client{}
 	return &SiliconClient{
 		client:        client,
 		authorization: "Bearer " + secretKey,
