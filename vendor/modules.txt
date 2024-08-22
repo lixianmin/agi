@@ -1,13 +1,3 @@
-# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-## explicit
 # github.com/lixianmin/got v0.0.0-20240802121141-222abc94b1d0
 ## explicit; go 1.21
 github.com/lixianmin/got/convert
-# github.com/ollama/ollama v0.3.4
-## explicit; go 1.22.0
-github.com/ollama/ollama/api
-github.com/ollama/ollama/envconfig
-github.com/ollama/ollama/format
-github.com/ollama/ollama/version
-# github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
-## explicit
