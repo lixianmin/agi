@@ -59,7 +59,7 @@ type (
 
 	ChunkedChoice struct {
 		Index        int          `json:"index"`
-		Delta        chat.Message `json:"delta"`
+		Message      chat.Message `json:"message"`
 		FinishReason string       `json:"finish_reason"`
 	}
 
@@ -151,8 +151,8 @@ func (my *SiliconClient) StreamChat(ctx context.Context, request *ChatRequest, f
 				Model:     chunk.Model,
 				CreatedAt: time.Unix(chunk.Created, 0),
 				Message: chat.Message{
-					Role:    choice.Delta.Role,
-					Content: choice.Delta.Content,
+					Role:    choice.Message.Role,
+					Content: choice.Message.Content,
 				},
 				DoneReason: choice.FinishReason,
 				Done:       choice.FinishReason == "stop",
