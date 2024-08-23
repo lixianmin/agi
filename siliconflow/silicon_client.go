@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/lixianmin/agi/chat"
+	"github.com/lixianmin/agi/ifs"
 	"github.com/lixianmin/got/convert"
 )
 
@@ -30,12 +31,14 @@ type (
 	}
 
 	ChatRequest struct {
-		Model       string          `json:"model"`
-		Messages    []*chat.Message `json:"messages"`
-		Stream      bool            `json:"stream,omitempty"`
-		Temperature float32         `json:"temperature,omitempty"`
-		TopK        int32           `json:"top_k,omitempty"`
-		TopP        float32         `json:"top_p,omitempty"`
+		chat.Request
+
+		FrequencyPenalty float32  `json:"frequency_penalty,omitempty"`
+		MaxTokens        int32    `json:"max_tokens,omitempty"`
+		Stop             []string `json:"stop,omitempty"`
+		Temperature      float32  `json:"temperature,omitempty"`
+		TopK             int32    `json:"top_k,omitempty"`
+		TopP             float32  `json:"top_p,omitempty"`
 	}
 
 	ChatResponse struct {
@@ -76,7 +79,7 @@ func NewSiliconClient(secretKey string) *SiliconClient {
 
 func (my *SiliconClient) Chat(ctx context.Context, request *ChatRequest) (*ChatCompletionChunk, error) {
 	if request == nil {
-		return nil, ErrRequestIsNil
+		return nil, ifs.ErrRequestIsNil
 	}
 
 	request.Stream = false
@@ -101,7 +104,7 @@ func (my *SiliconClient) Chat(ctx context.Context, request *ChatRequest) (*ChatC
 
 func (my *SiliconClient) StreamChat(ctx context.Context, request *ChatRequest, fn ChatResponseFunc) error {
 	if request == nil {
-		return ErrRequestIsNil
+		return ifs.ErrRequestIsNil
 	}
 
 	if fn == nil {
@@ -219,7 +222,7 @@ func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, 
 
 	_ = writer.Close()
 
-	var request3, err3 = http.NewRequestWithContext(ctx, "POST", requestUrl, &requestBody)
+	var request3, err3 = http.NewRequestWithContext(ctx, http.MethodPost, requestUrl, &requestBody)
 	if err3 != nil {
 		return "", err3
 	}

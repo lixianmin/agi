@@ -41,8 +41,10 @@ func TestChat(t *testing.T) {
 	chatThread.AddUserMessage("你觉得我帅嘛?")
 
 	var request = &ChatRequest{
-		Model:       modelName,
-		Messages:    chatThread.CloneMessages(),
+		Request: chat.Request{
+			Model:    modelName,
+			Messages: chatThread.CloneMessages(),
+		},
 		Temperature: chatThread.GetTemperature(),
 		TopK:        chatThread.GetTopK(),
 		TopP:        chatThread.GetTopP(),

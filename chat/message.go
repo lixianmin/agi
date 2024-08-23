@@ -12,4 +12,10 @@ type (
 		Role    string `json:"role"`
 		Content string `json:"content"`
 	}
+
+	Request struct {
+		Model    string     `json:"model"`
+		Messages []*Message `json:"messages"`
+		Stream   bool       `json:"stream,omitempty"`
+	}
 )
