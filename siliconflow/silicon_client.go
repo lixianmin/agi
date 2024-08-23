@@ -31,12 +31,12 @@ type (
 	}
 
 	ChatRequest struct {
-		Model       string         `json:"model"`
-		Messages    []chat.Message `json:"messages"`
-		Stream      bool           `json:"stream,omitempty"`
-		Temperature float32        `json:"temperature,omitempty"`
-		TopK        int32          `json:"top_k,omitempty"`
-		TopP        float32        `json:"top_p,omitempty"`
+		Model       string          `json:"model"`
+		Messages    []*chat.Message `json:"messages"`
+		Stream      bool            `json:"stream,omitempty"`
+		Temperature float32         `json:"temperature,omitempty"`
+		TopK        int32           `json:"top_k,omitempty"`
+		TopP        float32         `json:"top_p,omitempty"`
 	}
 
 	ChatResponse struct {

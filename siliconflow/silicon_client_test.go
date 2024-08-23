@@ -42,7 +42,7 @@ func TestChat(t *testing.T) {
 
 	var request = &ChatRequest{
 		Model:       modelName,
-		Messages:    chatThread.GetMessages(),
+		Messages:    chatThread.CloneMessages(),
 		Temperature: chatThread.GetTemperature(),
 		TopK:        chatThread.GetTopK(),
 		TopP:        chatThread.GetTopP(),

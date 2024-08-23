@@ -20,7 +20,7 @@ func TestThread(t *testing.T) {
 		thread.AddBotMessage("bot " + strconv.Itoa(i))
 	}
 
-	var messages = thread.GetMessages()
+	var messages = thread.CloneMessages()
 	var text, _ = json.Marshal(messages)
 	println(string(text))
 }

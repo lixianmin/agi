@@ -17,8 +17,7 @@ type (
 		topP        float32
 		topK        int32
 
-		messages []Message
-		cloned   []Message
+		messages []*Message
 		m        sync.Mutex
 	}
 )
@@ -47,11 +46,10 @@ func NewThread(opts ...ThreadOption) *Thread {
 		temperature: options.temperature,
 		topP:        options.topP,
 		topK:        options.topK,
-		messages:    make([]Message, 1, options.historySize+1), // index=0 is system prompt
-		cloned:      make([]Message, 1, options.historySize+1),
+		messages:    make([]*Message, 1, options.historySize+1), // index=0 is system prompt
 	}
 
-	thread.messages[0] = Message{
+	thread.messages[0] = &Message{
 		Role:    "system",
 		Content: options.prompt,
 	}
@@ -69,19 +67,19 @@ func (my *Thread) SetPrompt(prompt string) {
 
 func (my *Thread) AddUserMessage(content string) {
 	if content != "" {
-		var message = Message{Role: my.userRole, Content: content}
+		var message = &Message{Role: my.userRole, Content: content}
 		my.addMessage(message)
 	}
 }
 
 func (my *Thread) AddBotMessage(content string) {
 	if content != "" {
-		var message = Message{Role: my.botRole, Content: content}
+		var message = &Message{Role: my.botRole, Content: content}
 		my.addMessage(message)
 	}
 }
 
-func (my *Thread) addMessage(message Message) {
+func (my *Thread) addMessage(message *Message) {
 	my.m.Lock()
 	{
 		var count = len(my.messages)
@@ -95,19 +93,18 @@ func (my *Thread) addMessage(message Message) {
 	my.m.Unlock()
 }
 
-func (my *Thread) GetMessages() []Message {
+func (my *Thread) CloneMessages() []*Message {
+
+	var cloned []*Message
 	my.m.Lock()
 	{
-		var deltaSize = len(my.messages) - len(my.cloned)
-		for i := 0; i < deltaSize; i++ {
-			my.cloned = append(my.cloned, Message{})
-		}
-
-		copy(my.cloned, my.messages)
+		var size = len(my.messages)
+		cloned = make([]*Message, size)
+		copy(cloned, my.messages)
 	}
 	my.m.Unlock()
 
-	return my.cloned
+	return cloned
 }
 
 func (my *Thread) GetTemperature() float32 {
