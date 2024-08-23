@@ -8,7 +8,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
@@ -193,14 +192,12 @@ func (my *SiliconClient) sendChatRequest(ctx context.Context, request *ChatReque
 	return response3, err3
 }
 
-func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, filePath string) (string, error) {
-	const requestUrl = "https://api.siliconflow.cn/v1/audio/transcriptions"
-
-	var fin, err1 = os.Open(filePath)
-	if err1 != nil {
-		return "", err1
+func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, audioData []byte) (string, error) {
+	if modelName == "" || len(audioData) == 0 {
+		return "", errors.New("invalid parameters")
 	}
-	defer fin.Close()
+
+	const requestUrl = "https://api.siliconflow.cn/v1/audio/transcriptions"
 
 	var requestBody bytes.Buffer
 	var writer = multipart.NewWriter(&requestBody)
@@ -208,38 +205,39 @@ func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, 
 	// Add form fields
 	_ = writer.WriteField("model", modelName)
 
-	// filename是什么不重要，重要的是扩展名
-	part, err2 := writer.CreateFormFile("file", "abc.mp3")
+	// 虽然文件扩展名是.mp3, 但上传.wav也是可以的, 至少iic/SenseVoiceSmall这个模型是可以的
+	var part1, err1 = writer.CreateFormFile("file", "audio.mp3")
+		return "", err1
+	}
+
+	// Write the byte array to the form file
+	var _, err2 = part1.Write(audioData)
 	if err2 != nil {
 		return "", err2
 	}
 
-	var _, err3 = io.Copy(part, fin)
+	_ = writer.Close()
+
+	var request3, err3 = http.NewRequestWithContext(ctx, "POST", requestUrl, &requestBody)
 	if err3 != nil {
 		return "", err3
 	}
 
-	_ = writer.Close()
+	// Set headers
+	var header = request3.Header
+	header.Set("accept", "application/json")
+	header.Set("authorization", my.authorization)
+	header.Set("Content-Type", writer.FormDataContentType())
 
-	req, err4 := http.NewRequestWithContext(ctx, "POST", requestUrl, &requestBody)
+	var response4, err4 = my.client.Do(request3)
 	if err4 != nil {
 		return "", err4
 	}
+	defer response4.Body.Close()
 
-	// Set headers
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("authorization", my.authorization)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	resp, err5 := my.client.Do(req)
+	var body, err5 = io.ReadAll(response4.Body)
 	if err5 != nil {
 		return "", err5
-	}
-	defer resp.Body.Close()
-
-	body, err6 := io.ReadAll(resp.Body)
-	if err6 != nil {
-		return "", err6
 	}
 
 	type Output struct {

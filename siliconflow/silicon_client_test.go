@@ -63,3 +63,22 @@ func TestChat(t *testing.T) {
 	var result, _ = json.Marshal(response)
 	println(string(result))
 }
+
+func TestTranscribeAudio(t *testing.T) {
+	var sk = getSecretKey()
+	var client = NewSiliconClient(sk)
+
+	const modelName = "iic/SenseVoiceSmall"
+
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	var bts, _ = os.ReadFile("C:\\Users\\user\\Downloads\\temp\\record_out.wav")
+	var result, err = client.TranscribeAudio(ctx, modelName, bts)
+	if err != nil {
+		log.Fatalf("transcribe error: %v", err)
+		return
+	}
+
+	println(result)
+}
