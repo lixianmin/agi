@@ -207,6 +207,7 @@ func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, 
 
 	// 虽然文件扩展名是.mp3, 但上传.wav也是可以的, 至少iic/SenseVoiceSmall这个模型是可以的
 	var part1, err1 = writer.CreateFormFile("file", "audio.mp3")
+	if err1 != nil {
 		return "", err1
 	}
 
