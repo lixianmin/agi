@@ -1,4 +1,4 @@
-package siliconflow
+package deepseek
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 /********************************************************************
-created:    2024-08-22
+created:    2024-08-24
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
@@ -25,15 +25,15 @@ func getSecretKey() string {
 		log.Fatalf("Error loading .env file")
 	}
 
-	var sk = os.Getenv("SLICONFLOW_SECRET_KEY")
+	var sk = os.Getenv("DEEPSEEK_SECRET_KEY")
 	return sk
 }
 
 func TestChat(t *testing.T) {
 	var sk = getSecretKey()
-	var client = NewSiliconClient(sk)
+	var client = NewDeepSeekClient(sk)
 
-	const modelName = "Qwen/Qwen2-7B-Instruct"
+	const modelName = "deepseek-chat"
 	var chatThread = chat.NewThread()
 	chatThread.SetPrompt("你是一个脑残人士, 无论我说什么, 你都回答`是的`. 现在开始: ")
 	chatThread.AddUserMessage("今天天气怎么样?")
@@ -46,7 +46,6 @@ func TestChat(t *testing.T) {
 			Messages: chatThread.CloneMessages(),
 		},
 		Temperature: chatThread.GetTemperature(),
-		TopK:        chatThread.GetTopK(),
 		TopP:        chatThread.GetTopP(),
 	}
 
@@ -64,23 +63,4 @@ func TestChat(t *testing.T) {
 
 	var result, _ = json.Marshal(response)
 	println(string(result))
-}
-
-func TestTranscribeAudio(t *testing.T) {
-	var sk = getSecretKey()
-	var client = NewSiliconClient(sk)
-
-	const modelName = "iic/SenseVoiceSmall"
-
-	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	var bts, _ = os.ReadFile("C:\\Users\\user\\Downloads\\temp\\record_out.wav")
-	var result, err = client.TranscribeAudio(ctx, modelName, bts)
-	if err != nil {
-		log.Fatalf("transcribe error: %v", err)
-		return
-	}
-
-	println(result)
 }

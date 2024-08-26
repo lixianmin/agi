@@ -3,10 +3,8 @@ package deepseek
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/lixianmin/agi/chat"
@@ -122,64 +120,4 @@ func (my *DeepSeekClient) sendChatRequest(ctx context.Context, request *ChatRequ
 
 	var response3, err3 = my.client.Do(request2)
 	return response3, err3
-}
-
-func hello() {
-
-	url := "https://api.deepseek.com/chat/completions"
-	method := "POST"
-
-	payload := strings.NewReader(`{
-  "messages": [
-    {
-      "content": "You are a helpful assistant",
-      "role": "system"
-    },
-    {
-      "content": "Hi",
-      "role": "user"
-    }
-  ],
-  "model": "deepseek-coder",
-  "frequency_penalty": 0,
-  "max_tokens": 2048,
-  "presence_penalty": 0,
-  "response_format": {
-    "type": "text"
-  },
-  "stop": null,
-  "stream": false,
-  "stream_options": null,
-  "temperature": 1,
-  "top_p": 1,
-  "tools": null,
-  "tool_choice": "none",
-  "logprobs": false,
-  "top_logprobs": null
-}`)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer sk-765009e3f9d14a83ade2dd6bf346c730")
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(string(body))
 }
