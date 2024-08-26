@@ -8,12 +8,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type threadOptions struct {
-	prompt      string
-	userRole    string
-	botRole     string
-	temperature float32
-	topK        int32
-	topP        float32
+	prompt   string
+	userRole string
+	botRole  string
+	// temperature float32
+	// topK        int32
+	// topP        float32
 
 	historySize int
 }
@@ -24,6 +24,14 @@ func WithPrompt(prompt string) ThreadOption {
 	return func(options *threadOptions) {
 		if options.prompt != "" {
 			options.prompt = prompt
+		}
+	}
+}
+
+func WithHistorySize(size int) ThreadOption {
+	return func(options *threadOptions) {
+		if size > 0 {
+			options.historySize = size / 2 * 2
 		}
 	}
 }
@@ -44,36 +52,27 @@ func WithPrompt(prompt string) ThreadOption {
 // 		}
 // 	}
 // }
+// func WithTemperature(temperature float32) ThreadOption {
+// 	return func(options *threadOptions) {
+// 		if temperature > 0 {
+// 			options.temperature = min(temperature, 1)
+// 		}
+// 	}
+// }
 
-func WithHistorySize(size int) ThreadOption {
-	return func(options *threadOptions) {
-		if size > 0 {
-			options.historySize = size / 2 * 2
-		}
-	}
-}
+// func WithTopK(v int32) ThreadOption {
+// 	return func(options *threadOptions) {
+// 		if v > 0 {
+// 			options.topK = v
+// 		}
+// 	}
+// }
 
-func WithTemperature(temperature float32) ThreadOption {
-	return func(options *threadOptions) {
-		if temperature > 0 {
-			options.temperature = min(temperature, 1)
-		}
-	}
-}
-
-func WithTopK(v int32) ThreadOption {
-	return func(options *threadOptions) {
-		if v > 0 {
-			options.topK = v
-		}
-	}
-}
-
-func WithTopP(v float32) ThreadOption {
-	return func(options *threadOptions) {
-		if v > 0 {
-			options.topP = min(v, 1)
-		}
-		//options.topP = mathx.Clamp(v, 0, 1)
-	}
-}
+// func WithTopP(v float32) ThreadOption {
+// 	return func(options *threadOptions) {
+// 		if v > 0 {
+// 			options.topP = min(v, 1)
+// 		}
+// 		//options.topP = mathx.Clamp(v, 0, 1)
+// 	}
+// }

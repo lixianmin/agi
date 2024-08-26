@@ -45,9 +45,9 @@ func TestChat(t *testing.T) {
 			Model:    modelName,
 			Messages: chatThread.CloneMessages(),
 		},
-		Temperature: chatThread.GetTemperature(),
-		TopK:        chatThread.GetTopK(),
-		TopP:        chatThread.GetTopP(),
+		// Temperature: chatThread.GetTemperature(),
+		// TopK:        chatThread.GetTopK(),
+		// TopP:        chatThread.GetTopP(),
 	}
 
 	var req, _ = json.Marshal(request)

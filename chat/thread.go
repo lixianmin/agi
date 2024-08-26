@@ -11,11 +11,8 @@ Copyright (C) - All Rights Reserved
 
 type (
 	Thread struct {
-		userRole    string
-		botRole     string
-		temperature float32
-		topP        float32
-		topK        int32
+		userRole string
+		botRole  string
 
 		messages []*Message
 		m        sync.Mutex
@@ -25,12 +22,12 @@ type (
 func NewThread(opts ...ThreadOption) *Thread {
 	// 默认值
 	var options = threadOptions{
-		prompt:      "You are an English expert, you can help me to improve my English skills. The following are chats between you and me.",
-		userRole:    "user",
-		botRole:     "assistant",
-		temperature: 0.7,
-		topK:        50,
-		topP:        0.7,
+		prompt:   "You are an English expert, you can help me to improve my English skills. The following are chats between you and me.",
+		userRole: "user",
+		botRole:  "assistant",
+		// temperature: 0.7,
+		// topK:        50,
+		// topP:        0.7,
 
 		historySize: 20,
 	}
@@ -41,12 +38,9 @@ func NewThread(opts ...ThreadOption) *Thread {
 	}
 
 	var thread = &Thread{
-		userRole:    options.userRole,
-		botRole:     options.botRole,
-		temperature: options.temperature,
-		topP:        options.topP,
-		topK:        options.topK,
-		messages:    make([]*Message, 1, options.historySize+1), // index=0 is system prompt
+		userRole: options.userRole,
+		botRole:  options.botRole,
+		messages: make([]*Message, 1, options.historySize+1), // index=0 is system prompt
 	}
 
 	thread.messages[0] = &Message{
@@ -105,16 +99,4 @@ func (my *Thread) CloneMessages() []*Message {
 	my.m.Unlock()
 
 	return cloned
-}
-
-func (my *Thread) GetTemperature() float32 {
-	return my.temperature
-}
-
-func (my *Thread) GetTopP() float32 {
-	return my.topP
-}
-
-func (my *Thread) GetTopK() int32 {
-	return my.topK
 }
