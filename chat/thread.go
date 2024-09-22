@@ -29,7 +29,7 @@ func NewThread(opts ...ThreadOption) *Thread {
 		// topK:        50,
 		// topP:        0.7,
 
-		historySize: 20,
+		historySize: 100,
 	}
 
 	// 初始化
@@ -62,29 +62,46 @@ func (my *Thread) SetPrompt(prompt string) {
 func (my *Thread) AddUserMessage(content string) {
 	if content != "" {
 		var message = &Message{Role: my.userRole, Content: content}
-		my.addMessage(message)
+		my.m.Lock()
+		{
+			my.addMessage(message)
+		}
+		my.m.Unlock()
 	}
 }
 
 func (my *Thread) AddBotMessage(content string) {
 	if content != "" {
 		var message = &Message{Role: my.botRole, Content: content}
-		my.addMessage(message)
+		my.m.Lock()
+		{
+			my.addMessage(message)
+		}
+		my.m.Unlock()
 	}
 }
 
 func (my *Thread) addMessage(message *Message) {
-	my.m.Lock()
-	{
-		var count = len(my.messages)
-		if count == cap(my.messages) {
-			copy(my.messages[1:], my.messages[2:])
-			my.messages[count-1] = message
-		} else {
-			my.messages = append(my.messages, message)
-		}
+	var count = len(my.messages)
+	if count == cap(my.messages) {
+		copy(my.messages[1:], my.messages[2:])
+		my.messages[count-1] = message
+	} else {
+		my.messages = append(my.messages, message)
 	}
-	my.m.Unlock()
+}
+
+func (my *Thread) AddMessages(messages []*Message) {
+	var count = len(my.messages)
+	if count > 0 {
+		my.m.Lock()
+		{
+			for _, message := range messages {
+				my.addMessage(message)
+			}
+		}
+		my.m.Unlock()
+	}
 }
 
 func (my *Thread) CloneMessages() []*Message {
