@@ -30,15 +30,20 @@ type (
 		authorization string
 	}
 
+	ResponseFormat struct {
+		Type string `json:"type,omitempty"` // 支持： json_object
+	}
+
 	ChatRequest struct {
 		chat.Request
 
-		FrequencyPenalty float32  `json:"frequency_penalty,omitempty"`
-		MaxTokens        int32    `json:"max_tokens,omitempty"`
-		Stop             []string `json:"stop,omitempty"`
-		Temperature      float32  `json:"temperature,omitempty"`
-		TopK             int32    `json:"top_k,omitempty"`
-		TopP             float32  `json:"top_p,omitempty"`
+		FrequencyPenalty float32         `json:"frequency_penalty,omitempty"`
+		MaxTokens        int32           `json:"max_tokens,omitempty"`
+		Stop             []string        `json:"stop,omitempty"`
+		Temperature      float32         `json:"temperature,omitempty"`
+		TopK             int32           `json:"top_k,omitempty"`
+		TopP             float32         `json:"top_p,omitempty"`
+		ResponseFormat   *ResponseFormat `json:"response_format,omitempty"`
 	}
 
 	ChatResponse struct {
