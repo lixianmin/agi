@@ -35,8 +35,6 @@ type (
 		Stop             []string `json:"stop,omitempty"`
 		Temperature      float32  `json:"temperature,omitempty"`
 		TopP             float32  `json:"top_p,omitempty"`
-
-		ResponseFormat string `json:"response_format,omitempty"`
 	}
 
 	ChatResponse struct {

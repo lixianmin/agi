@@ -13,9 +13,14 @@ type (
 		Content string `json:"content"`
 	}
 
+	ResponseFormat struct {
+		Type string `json:"type,omitempty"` // 支持： json_object
+	}
+
 	Request struct {
-		Model    string     `json:"model"`
-		Messages []*Message `json:"messages"`
-		Stream   bool       `json:"stream,omitempty"`
+		Model          string          `json:"model"`
+		Messages       []*Message      `json:"messages"`
+		Stream         bool            `json:"stream,omitempty"`
+		ResponseFormat *ResponseFormat `json:"response_format,omitempty"`
 	}
 )
