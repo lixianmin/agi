@@ -25,7 +25,7 @@ func getSecretKey() string {
 		log.Fatalf("Error loading .env file")
 	}
 
-	var sk = os.Getenv("SLICONFLOW_SECRET_KEY")
+	var sk = os.Getenv("SILICONFLOW_API_KEY")
 	return sk
 }
 
@@ -83,4 +83,28 @@ func TestTranscribeAudio(t *testing.T) {
 	}
 
 	println(result)
+}
+
+func TestEmbeddings(t *testing.T) {
+	var sk = getSecretKey()
+	var client = NewSiliconClient(sk)
+
+	const modelName = "BAAI/bge-m3"
+
+	var request = &EmbeddingRequest{
+		Model: modelName,
+		Input: []string{"你好，世界", "Hello, world"},
+	}
+
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	var response, err = client.Embeddings(ctx, request)
+	if err != nil {
+		log.Fatalf("embeddings error: %v", err)
+		return
+	}
+
+	var result, _ = json.Marshal(response)
+	println(string(result))
 }

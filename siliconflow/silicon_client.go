@@ -66,6 +66,33 @@ type (
 	}
 
 	ChatResponseFunc func(ChatResponse) error
+
+	EmbeddingRequest struct {
+		Model          string `json:"model"`
+		Input          any    `json:"input"`
+		EncodingFormat string `json:"encoding_format,omitempty"`
+		Dimensions     int    `json:"dimensions,omitempty"`
+		User           string `json:"user,omitempty"`
+		Truncate       string `json:"truncate,omitempty"`
+	}
+
+	EmbeddingData struct {
+		Object    string    `json:"object"`
+		Embedding []float64 `json:"embedding"`
+		Index     int       `json:"index"`
+	}
+
+	EmbeddingUsage struct {
+		PromptTokens int `json:"prompt_tokens"`
+		TotalTokens  int `json:"total_tokens"`
+	}
+
+	EmbeddingResponse struct {
+		Object string          `json:"object"`
+		Data   []EmbeddingData `json:"data"`
+		Model  string          `json:"model"`
+		Usage  EmbeddingUsage  `json:"usage"`
+	}
 )
 
 // NewSiliconClient 线程安全+无状态
@@ -251,4 +278,45 @@ func (my *SiliconClient) TranscribeAudio(ctx context.Context, modelName string, 
 	var output Output
 	convert.FromJson(body, &output)
 	return output.Text, nil
+}
+
+func (my *SiliconClient) Embeddings(ctx context.Context, request *EmbeddingRequest) (*EmbeddingResponse, error) {
+	if request == nil {
+		return nil, ifs.ErrRequestIsNil
+	}
+
+	const requestUrl = "https://api.siliconflow.cn/v1/embeddings"
+	var bts1, err1 = convert.ToJsonE(request)
+	if err1 != nil {
+		return nil, err1
+	}
+
+	var requestBody = bytes.NewBuffer(bts1)
+	var request2, err2 = http.NewRequestWithContext(ctx, http.MethodPost, requestUrl, requestBody)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	var header = request2.Header
+	header.Set("accept", "application/json")
+	header.Set("Content-Type", "application/json")
+	header.Set("authorization", my.authorization)
+
+	var response3, err3 = my.client.Do(request2)
+	if err3 != nil {
+		return nil, err3
+	}
+	defer response3.Body.Close()
+
+	var bts2, err4 = io.ReadAll(response3.Body)
+	if err4 != nil {
+		return nil, err4
+	}
+
+	var response EmbeddingResponse
+	if err5 := convert.FromJsonE(bts2, &response); err5 != nil {
+		return nil, err5
+	}
+
+	return &response, nil
 }
